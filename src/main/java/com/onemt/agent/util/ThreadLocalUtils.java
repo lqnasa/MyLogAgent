@@ -2,32 +2,26 @@ package com.onemt.agent.util;
 
 import java.util.UUID;
 
-import com.onemt.agent.vo.TraceVo;
+import com.onemt.agent.vo.Trace;
 
 public class ThreadLocalUtils {
 	
-	private static ThreadLocal<TraceVo> threadLocal = new ThreadLocal<TraceVo>(){
+	private static ThreadLocal<Trace> threadLocal = new InheritableThreadLocal<Trace>(){
 		@Override
-		protected TraceVo initialValue() {
-			TraceVo traceVo = new TraceVo();
-			traceVo.setHostIp(InetAddressUtils.getHostAddress());
-			//traceVo.setCreateTime(Instant.now().getEpochSecond());
-			traceVo.setErrCode(0);
-			traceVo.setIsEntry(true);
-			traceVo.setTraceId(UUID.randomUUID().toString());
-			traceVo.setSpanId(UUID.randomUUID().toString());
-			
-			return traceVo;
+		protected Trace initialValue() {
+			Trace trace = new Trace();
+			trace.setHostIp(InetAddressUtils.getHostAddress());
+			trace.setTraceId(UUID.randomUUID().toString());
+			return trace;
 		}
-		
 	};
 	
-	public static TraceVo get(){
+	public static Trace get(){
 		return threadLocal.get();
 	}
 	
-	public static void set(TraceVo traceVo){
-			threadLocal.set(traceVo);
+	public static void set(Trace trace){
+			threadLocal.set(trace);
 	}
 
 }
