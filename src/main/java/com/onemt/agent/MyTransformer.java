@@ -32,16 +32,13 @@ public class MyTransformer implements ClassFileTransformer {
 			ClassPool pool = ClassPool.getDefault();
 			//ctclass = ClassPool.getDefault().get(className);// 使用全称,用于取得字节码类<使用javassist>
 			ctclass = pool.makeClass(new java.io.ByteArrayInputStream(classfileBuffer));
-			
 			if (ctclass.hasAnnotation(TraceClass.class)) {
 				CtMethod[] declaredMethods = ctclass.getDeclaredMethods();
 				for (CtMethod ctMethod : declaredMethods) {
 					if(ctMethod.hasAnnotation(TraceMethod.class)){
-						
 						TraceMethod annotation = (TraceMethod) ctMethod.getAnnotation(TraceMethod.class);
 						boolean isEntry = StringUtils.isNotBlank(annotation.methodDescription());
 						String methodName = ctMethod.getName();
-						
 						CtClass[] parameterTypes = ctMethod.getParameterTypes();
 						int length = parameterTypes!=null?parameterTypes.length:0;
 						
@@ -62,17 +59,17 @@ public class MyTransformer implements ClassFileTransformer {
 						.append("\ncom.onemt.agent.vo.TraceVo traceVo = new com.onemt.agent.vo.TraceVo();")
 						.append("\norg.springframework.beans.BeanUtils.copyProperties(trace, traceVo);")
 						.append("\ntraceVo.setClassName(\""+className+"\");")
-						.append("\ntraceVo.setMethodName(\""+methodName+"\");")
+						.append("\ntraceVo.setMethodName(\""+ctMethod.getName()+"\");")
 						.append("\ntraceVo.setThreadName(Thread.currentThread().getName());");
 						if(length>0){
 							bodyStr.append("\njava.util.List inParams = new java.util.ArrayList();");
 							for (int i=0;i<length;i++) {
 								bodyStr.append("\njava.util.Map inParam"+i+" = new java.util.HashMap();")
-								.append("\ninParam"+i+".put(\""+parameterTypes[i].getName()+" "+attribute.variableName(i+pos)+"\", com.onemt.agent.log.LogOutput.toJson($"+(i+1)+",$sig["+i+"]));")
+								//parameterTypes[i].getName()
+								.append("\ninParam"+i+".put(\""+attribute.variableName(i+pos)+"\", $"+(i+1)+");")
 								.append("\ninParams.add(inParam"+i+");");
 							}
 							bodyStr.append("\ntraceVo.setInParams(inParams);");
-							bodyStr.append("\n System.out.println(\"第一个参数：\"+$1);");
 						}
 						bodyStr.append("\ntraceVo.setParentId(trace.getSpanId());")
 						.append("\nString spanId = java.util.UUID.randomUUID().toString();")
@@ -92,7 +89,7 @@ public class MyTransformer implements ClassFileTransformer {
 						bodyStr.append(newMethodName + "($$);")
 						.append("\n} catch (Throwable e) {")
 						.append("\ntraceVo.setErrCode(Integer.valueOf(1));")
-						.append("\ntraceVo.setErrorMessage(e.getMessage());")
+						.append("\ntraceVo.setErrorMessage(e);")
 						.append("\nthrow e;")
 						.append("\n}finally{")
 						.append("\nlong endTime = System.currentTimeMillis();")
@@ -101,8 +98,7 @@ public class MyTransformer implements ClassFileTransformer {
 						.append("\ntraceVo.setCallTime(Long.valueOf(endTime-startTime));");
 						if (!"void".equals(returnName)) {
 							bodyStr.append("\njava.util.Map returnOjbect = new java.util.HashMap();")
-							//.append("System.out.println(\"第一个参数： \"+$type+\" \"+$r);")
-							.append("\nreturnOjbect.put(\""+returnName+"\",com.onemt.agent.log.LogOutput.toJson(retVal));")
+							.append("\nreturnOjbect.put(\""+returnName+"\",retVal);")
 							.append("\ntraceVo.setRetVal(returnOjbect);");
 						}
 						bodyStr.append("\ncom.onemt.agent.log.LogOutput.output(traceVo);")

@@ -15,10 +15,10 @@ public class TraceVo{
 	private String parentId; // "16a52a9f-e697-45ce-92fb-7395339eae4b",
 	private String className; // "dao.impl.ProductDaoImpl"
 	private String methodName;// "queryProduct",
-	private List<Map<String,String>> inParams; // 参数值
-	private Map<String,String> retVal; //返回值
+	private List<Map<String,Object>> inParams; // 参数值
+	private Map<String,Object> retVal; //返回值
 	private String errorType; //异常类型
-	private String errorMessage;  //异常信息
+	private Object errorMessage;  //异常信息
 	private Long createTime; // 1448442004537,
 	private Long returnTime; // 1448442004537,
 	private Long callTime; // 5
@@ -29,10 +29,30 @@ public class TraceVo{
 	public TraceVo() {
 	}
 
+	/**
+	 * @param hostIp
+	 * @param threadName
+	 * @param instanceName
+	 * @param isEntry
+	 * @param errCode
+	 * @param traceId
+	 * @param spanId
+	 * @param parentId
+	 * @param className
+	 * @param methodName
+	 * @param inParams
+	 * @param retVal
+	 * @param errorType
+	 * @param errorMessage
+	 * @param createTime
+	 * @param returnTime
+	 * @param callTime
+	 */
 	public TraceVo(String hostIp, String threadName, String instanceName, Boolean isEntry, Integer errCode,
 			String traceId, String spanId, String parentId, String className, String methodName,
-			List<Map<String, String>> inParams, Map<String, String> retVal, String errorType, String errorMessage,
+			List<Map<String, Object>> inParams, Map<String, Object> retVal, String errorType, Object errorMessage,
 			Long createTime, Long returnTime, Long callTime) {
+		super();
 		this.hostIp = hostIp;
 		this.threadName = threadName;
 		this.instanceName = instanceName;
@@ -132,19 +152,19 @@ public class TraceVo{
 		this.methodName = methodName;
 	}
 
-	public List<Map<String, String>> getInParams() {
+	public List<Map<String, Object>> getInParams() {
 		return inParams;
 	}
 
-	public void setInParams(List<Map<String, String>> inParams) {
+	public void setInParams(List<Map<String, Object>> inParams) {
 		this.inParams = inParams;
 	}
 
-	public Map<String, String> getRetVal() {
+	public Map<String, Object> getRetVal() {
 		return retVal;
 	}
 
-	public void setRetVal(Map<String, String> retVal) {
+	public void setRetVal(Map<String, Object> retVal) {
 		this.retVal = retVal;
 	}
 
@@ -156,11 +176,11 @@ public class TraceVo{
 		this.errorType = errorType;
 	}
 
-	public String getErrorMessage() {
+	public Object getErrorMessage() {
 		return errorMessage;
 	}
 
-	public void setErrorMessage(String errorMessage) {
+	public void setErrorMessage(Object errorMessage) {
 		this.errorMessage = errorMessage;
 	}
 
@@ -187,5 +207,6 @@ public class TraceVo{
 	public void setCallTime(Long callTime) {
 		this.callTime = callTime;
 	}
+
 	
 }

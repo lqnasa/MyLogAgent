@@ -1,44 +1,71 @@
 package com.onemt.agent.log;
 
-import java.lang.reflect.Type;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.onemt.agent.vo.TraceVo;
 
 public class LogOutput {
-	
-	public String a;
-	
+
+	private static final Logger logger = LoggerFactory.getLogger(LogOutput.class);
+
 	private static final ExecutorService newFixedThreadPool = Executors.newFixedThreadPool(10);
 
 	private static final Gson gson = new GsonBuilder().setPrettyPrinting().create();
-	
-	public static void output(final TraceVo traceVo){
-		System.out.println(gson.toJson(traceVo));
-	/*	newFixedThreadPool.execute(()->{
-		});*/
+
+	public static void output(final TraceVo traceVo) {
+		newFixedThreadPool.execute(() -> {
+
+			List<Map<String, Object>> inParams = traceVo.getInParams();
+			Map<String, Object> retVal = traceVo.getRetVal();
+			Object errorMessage = traceVo.getErrorMessage();
+
+			if (inParams != null) {
+				inParams.forEach(param -> {
+					param.forEach((k, v) -> {
+						param.replace(k, toJson(v));
+					});
+				});
+			}
+
+			if (retVal != null) {
+				retVal.forEach((k, v) -> {
+					retVal.replace(k, toJson(v));
+				});
+			}
+			if(errorMessage!=null){
+				traceVo.setErrorMessage(printStackTraceToString((Throwable)errorMessage));
+			}
+			
+
+			logger.info(gson.toJson(traceVo));
+		});
+
 	}
-	
-	public static String toJson(Object object){
-		return gson.toJson(object);
+
+	public static Object toJson(Object object) {
+		if (object instanceof String || object instanceof Integer || object instanceof Boolean || object instanceof Long
+				|| object instanceof Boolean || object instanceof Float || object instanceof Double) {
+			return object;
+		} else {
+			return ""+object;
+		}
+
 	}
-	
-	public static String toJson(Object object,Type type){
-		
-		if(object instanceof Class){
-			return type.getTypeName();
-		}
-		
-		String str = "";
-		try {
-			str = gson.toJson(object, type);
-		} catch (Exception e) {
-			str ="gson cannot to json for this :"+object;
-		}
-		return str;
+
+	public static String printStackTraceToString(Throwable t) {
+		StringWriter sw = new StringWriter();
+		t.printStackTrace(new PrintWriter(sw, true));
+		return sw.getBuffer().toString();
 	}
 
 }
