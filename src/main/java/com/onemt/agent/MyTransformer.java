@@ -4,8 +4,6 @@ import java.lang.instrument.ClassFileTransformer;
 import java.lang.instrument.IllegalClassFormatException;
 import java.security.ProtectionDomain;
 
-import org.apache.commons.lang3.StringUtils;
-
 import com.onemt.agent.annotation.TraceClass;
 import com.onemt.agent.annotation.TraceMethod;
 
@@ -29,15 +27,29 @@ public class MyTransformer implements ClassFileTransformer {
 		className = className.replace("/", ".");
 		CtClass ctclass = null;
 		try {
-			ClassPool pool = ClassPool.getDefault();
+			if(!className.contains("com")){
+				return null;
+			}
+			System.out.println("===============MyTransformer className============"+className);
+			System.out.println("===============MyTransformer classfileBuffer============"+classfileBuffer);
+			ClassPool pool =ClassPool.getDefault();
 			//ctclass = ClassPool.getDefault().get(className);// 使用全称,用于取得字节码类<使用javassist>
 			ctclass = pool.makeClass(new java.io.ByteArrayInputStream(classfileBuffer));
+			System.out.println("===============MyTransformer classfileBuffer className============"+ctclass.getName());
+			
+			
 			if (ctclass.hasAnnotation(TraceClass.class)) {
 				CtMethod[] declaredMethods = ctclass.getDeclaredMethods();
 				for (CtMethod ctMethod : declaredMethods) {
 					if(ctMethod.hasAnnotation(TraceMethod.class)){
-						TraceMethod annotation = (TraceMethod) ctMethod.getAnnotation(TraceMethod.class);
-						boolean isEntry = StringUtils.isNotBlank(annotation.methodDescription());
+						
+						System.out.println("===============MyTransformer classfileBuffer hasAnnotation============");
+						
+						Object annotation = ctMethod.getAnnotation(TraceMethod.class);
+						
+						System.out.println("===============MyTransformer classfileBuffer annotation============"+annotation);
+						
+						boolean isEntry = true;
 						String methodName = ctMethod.getName();
 						CtClass[] parameterTypes = ctMethod.getParameterTypes();
 						int length = parameterTypes!=null?parameterTypes.length:0;
@@ -48,16 +60,21 @@ public class MyTransformer implements ClassFileTransformer {
 						int pos = Modifier.isStatic(ctMethod.getModifiers()) ? 0 : 1;  
 						
 						String returnName = ctMethod.getReturnType().getName();
+						
+						System.out.println("===============MyTransformer classfileBuffer returnName============"+returnName);
+						
 						String newMethodName = methodName + "$old";// 新定义一个方法叫做比如sayHello$old
 						ctMethod.setName(newMethodName);// 将原来的方法名字修改
 						// 创建新的方法，复制原来的方法，名字为原来的名字
 						CtMethod newMethod = CtNewMethod.copy(ctMethod, methodName, ctclass, null);
 						// 构建新的方法体.
 						StringBuilder bodyStr = new StringBuilder();
+						
 						bodyStr.append("{")
 						.append("\ncom.onemt.agent.vo.Trace trace = com.onemt.agent.util.ThreadLocalUtils.get();")
 						.append("\ncom.onemt.agent.vo.TraceVo traceVo = new com.onemt.agent.vo.TraceVo();")
-						.append("\norg.springframework.beans.BeanUtils.copyProperties(trace, traceVo);")
+						.append("\ntraceVo.setHostIp(trace.getHostIp());")
+						.append("\ntraceVo.setTraceId(trace.getTraceId());")
 						.append("\ntraceVo.setClassName(\""+className+"\");")
 						.append("\ntraceVo.setMethodName(\""+ctMethod.getName()+"\");")
 						.append("\ntraceVo.setThreadName(Thread.currentThread().getName());");
