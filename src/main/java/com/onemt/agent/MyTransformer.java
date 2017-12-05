@@ -27,7 +27,7 @@ public class MyTransformer implements ClassFileTransformer {
 		className = className.replace("/", ".");
 		CtClass ctclass = null;
 		try {
-			if(!className.contains("com")){
+			if(!className.contains("com.onemt")){
 				return null;
 			}
 			System.out.println("===============MyTransformer className============"+className);
