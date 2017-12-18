@@ -27,9 +27,16 @@ public class MyTransformer implements ClassFileTransformer {
 		className = className.replace("/", ".");
 		CtClass ctclass = null;
 		try {
-			if(!className.contains("com.onemt")){
+			
+			if ((className == null) || (loader == null)
+					|| (loader.getClass().getName().equals("sun.reflect.DelegatingClassLoader"))
+					|| (loader.getClass().getName().equals("org.apache.catalina.loader.StandardClassLoader"))
+					|| (loader.getClass().getName().equals("javax.management.remote.rmi.NoCallStackClassLoader"))
+					|| (loader.getClass().getName().equals("com.alibaba.fastjson.util.ASMClassLoader"))
+					|| (className.indexOf("$Proxy") != -1) || (className.startsWith("java"))) {
 				return null;
 			}
+			
 			System.out.println("===============MyTransformer className============"+className);
 			System.out.println("===============MyTransformer classfileBuffer============"+classfileBuffer);
 			ClassPool pool =ClassPool.getDefault();
