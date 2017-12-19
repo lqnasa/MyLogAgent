@@ -3,6 +3,8 @@ package com.onemt.agent;
 import java.lang.instrument.ClassFileTransformer;
 import java.lang.instrument.IllegalClassFormatException;
 import java.security.ProtectionDomain;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import com.onemt.agent.annotation.TraceClass;
 import com.onemt.agent.annotation.TraceMethod;
@@ -11,20 +13,19 @@ import javassist.ClassPool;
 import javassist.CtClass;
 import javassist.CtMethod;
 import javassist.CtNewMethod;
+import javassist.LoaderClassPath;
 import javassist.Modifier;
 import javassist.bytecode.CodeAttribute;
 import javassist.bytecode.LocalVariableAttribute;
 import javassist.bytecode.MethodInfo;
 
 public class MyTransformer implements ClassFileTransformer {
-
-	final static String prefix = "long startTime = System.currentTimeMillis();";
-	final static String postfix = "long endTime = System.currentTimeMillis();";
+	
+	private Map<ClassLoader,ClassPool> classPoolMap = new ConcurrentHashMap<ClassLoader, ClassPool>();
 
 	@Override
 	public byte[] transform(ClassLoader loader, String className, Class<?> classBeingRedefined,
 			ProtectionDomain protectionDomain, byte[] classfileBuffer) throws IllegalClassFormatException {
-		className = className.replace("/", ".");
 		CtClass ctclass = null;
 		try {
 			
@@ -37,12 +38,20 @@ public class MyTransformer implements ClassFileTransformer {
 				return null;
 			}
 			
-			System.out.println("===============MyTransformer className============"+className);
-			System.out.println("===============MyTransformer classfileBuffer============"+classfileBuffer);
-			ClassPool pool =ClassPool.getDefault();
+			if (!classPoolMap.containsKey(loader)) {
+				ClassPool localClassPool = new ClassPool();
+				localClassPool.insertClassPath(new LoaderClassPath(loader));
+				classPoolMap.put(loader, localClassPool);
+			}
+		    ClassPool pool = (ClassPool)classPoolMap.get(loader);
+			className = className.replace("/", ".");
+			//System.out.println("===============MyTransformer className============"+className);
+			//System.out.println("===============MyTransformer classfileBuffer============"+classfileBuffer);
+			//ClassPool pool =ClassPool.getDefault();
 			//ctclass = ClassPool.getDefault().get(className);// 使用全称,用于取得字节码类<使用javassist>
-			ctclass = pool.makeClass(new java.io.ByteArrayInputStream(classfileBuffer));
-			System.out.println("===============MyTransformer classfileBuffer className============"+ctclass.getName());
+			//ctclass = pool.makeClass(new java.io.ByteArrayInputStream(classfileBuffer));
+			ctclass =pool.get(className);
+			//System.out.println("===============MyTransformer classfileBuffer className============"+ctclass.getName());
 			
 			
 			if (ctclass.hasAnnotation(TraceClass.class)) {
@@ -58,6 +67,7 @@ public class MyTransformer implements ClassFileTransformer {
 						
 						boolean isEntry = true;
 						String methodName = ctMethod.getName();
+						System.out.println("===============MyTransformer classfileBuffer methodName============"+methodName);
 						CtClass[] parameterTypes = ctMethod.getParameterTypes();
 						int length = parameterTypes!=null?parameterTypes.length:0;
 						

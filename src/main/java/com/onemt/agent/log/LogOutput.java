@@ -46,7 +46,7 @@ public class LogOutput {
 				traceVo.setErrorMessage(printStackTraceToString((Throwable)errorMessage));
 			}
 			
-
+			System.out.println("====================gson================="+gson.toJson(traceVo));
 			logger.info(gson.toJson(traceVo));
 		});
 
