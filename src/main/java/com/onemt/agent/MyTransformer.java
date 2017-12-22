@@ -32,16 +32,16 @@ public class MyTransformer implements ClassFileTransformer {
 			if ((className == null) || (loader == null)
 					|| (loader.getClass().getName().equals("sun.reflect.DelegatingClassLoader"))
 					|| (loader.getClass().getName().equals("org.apache.catalina.loader.StandardClassLoader"))
-					|| (loader.getClass().getName().equals("javax.management.remote.rmi.NoCallStackClassLoader"))
 					|| (loader.getClass().getName().equals("com.alibaba.fastjson.util.ASMClassLoader"))
-					|| (className.indexOf("$Proxy") != -1) || (className.startsWith("java"))) {
-				return null;
+					|| (className.indexOf("$Proxy") != -1) || className.startsWith("java")||loader.getClass().getName().startsWith("javax")) {
+				return classfileBuffer;
 			}
 			
 			if (!classPoolMap.containsKey(loader)) {
 				ClassPool localClassPool = new ClassPool();
 				localClassPool.insertClassPath(new LoaderClassPath(loader));
 				classPoolMap.put(loader, localClassPool);
+				System.out.println("类加载器=======================>"+loader.toString()+" "+className);
 			}
 		    ClassPool pool = (ClassPool)classPoolMap.get(loader);
 			className = className.replace("/", ".");

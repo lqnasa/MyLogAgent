@@ -208,5 +208,14 @@ public class TraceVo{
 		this.callTime = callTime;
 	}
 
+	@Override
+	public String toString() {
+		return "TraceVo [hostIp=" + hostIp + ", threadName=" + threadName + ", instanceName=" + instanceName
+				+ ", isEntry=" + isEntry + ", errCode=" + errCode + ", traceId=" + traceId + ", spanId=" + spanId
+				+ ", parentId=" + parentId + ", className=" + className + ", methodName=" + methodName + ", inParams="
+				+ inParams + ", retVal=" + retVal + ", errorType=" + errorType + ", errorMessage=" + errorMessage
+				+ ", createTime=" + createTime + ", returnTime=" + returnTime + ", callTime=" + callTime + "]";
+	}
+
 	
 }

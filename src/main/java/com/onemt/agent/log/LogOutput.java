@@ -7,25 +7,20 @@ import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.onemt.agent.vo.TraceVo;
 
 public class LogOutput {
 
-	private static final Logger logger = LoggerFactory.getLogger(LogOutput.class);
+	//private static final Logger logger = LoggerFactory.getLogger(LogOutput.class);
 
 	private static final ExecutorService newFixedThreadPool = Executors.newFixedThreadPool(10);
 
-	private static final Gson gson = new GsonBuilder().setPrettyPrinting().create();
+	//private static final Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
 	public static void output(final TraceVo traceVo) {
 		newFixedThreadPool.execute(() -> {
 
-			List<Map<String, Object>> inParams = traceVo.getInParams();
+			/*List<Map<String, Object>> inParams = traceVo.getInParams();
 			Map<String, Object> retVal = traceVo.getRetVal();
 			Object errorMessage = traceVo.getErrorMessage();
 
@@ -44,10 +39,10 @@ public class LogOutput {
 			}
 			if(errorMessage!=null){
 				traceVo.setErrorMessage(printStackTraceToString((Throwable)errorMessage));
-			}
+			}*/
 			
-			System.out.println("====================gson================="+gson.toJson(traceVo));
-			logger.info(gson.toJson(traceVo));
+			System.out.println("====================toString================="+traceVo);
+			//logger.info(gson.toJson(traceVo));
 		});
 
 	}
